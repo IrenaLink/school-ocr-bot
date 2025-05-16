@@ -4,7 +4,9 @@ from PIL import Image
 import io
 
 # Твой токен от BotFather сюда
-API_TOKEN = '8052244143:AAFFq32w5U2aTBDgocT2q4VUY7EkplJtFVQ'
+import os
+
+API_TOKEN = os.getenv('TELEGRAM_TOKEN')
 
 # Путь к установленному Tesseract (Windows)
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
