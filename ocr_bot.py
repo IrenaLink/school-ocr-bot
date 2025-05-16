@@ -1,5 +1,5 @@
 from aiogram import Bot, Dispatcher, types
-import pytesseract
+from paddleocr import PaddleOCR
 from PIL import Image
 import io
 import os
@@ -9,7 +9,9 @@ import asyncio
 load_dotenv()
 
 API_TOKEN = os.getenv('TELEGRAM_TOKEN')
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+# Инициализируем OCR (русский + английский)
+ocr = PaddleOCR(use_angle_cls=True, lang='ru')
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
@@ -19,20 +21,22 @@ async def handle_photo(message: types.Message):
     if not message.photo:
         return
 
-    await message.answer("📷 Получил фото. Начинаю распознавание...")
-
-    # Скачиваем фото во временное хранилище в памяти
+    await message.answer("📷 Получил фото. Начинаю нейросетевое распознавание...")
     photo = message.photo[-1]
     photo_file = io.BytesIO()
     await bot.download(photo, destination=photo_file)
     photo_file.seek(0)
 
-    # Открываем и распознаём
-    image = Image.open(photo_file)
-    text = pytesseract.image_to_string(image, lang='rus')
+    # Открываем картинку
+    image = Image.open(photo_file).convert('RGB')
+    # Распознаём
+    result = ocr.ocr(image, cls=True)
+    text_result = ''
+    for line in result[0]:
+        text_result += line[1][0] + '\n'
 
-    if text.strip():
-        await message.answer(f"✅ Вот, что удалось распознать:\n\n{text}")
+    if text_result.strip():
+        await message.answer(f"✅ Вот, что удалось распознать:\n\n{text_result}")
     else:
         await message.answer("❗ Не удалось распознать текст. Попробуйте другое фото.")
 
