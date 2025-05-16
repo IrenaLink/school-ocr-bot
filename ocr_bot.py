@@ -1,10 +1,11 @@
-from aiogram import Bot, Dispatcher, types
-from paddleocr import PaddleOCR
-from PIL import Image
 import io
 import os
 from dotenv import load_dotenv
 import asyncio
+from aiogram import Bot, Dispatcher, types
+from paddleocr import PaddleOCR
+from PIL import Image
+import numpy as np
 
 load_dotenv()
 
@@ -27,18 +28,15 @@ async def handle_photo(message: types.Message):
     await bot.download(photo, destination=photo_file)
     photo_file.seek(0)
 
-   # Открываем картинку
-image = Image.open(photo_file).convert('RGB')
-import numpy as np
-image_np = np.array(image)
+    # Всё дальше — строго внутри этой функции, с отступом!
+    image = Image.open(photo_file).convert('RGB')
+    image_np = np.array(image)
 
-# Распознаём через PaddleOCR
-result = ocr.ocr(image_np, cls=True)
+    result = ocr.ocr(image_np, cls=True)
 
-# Собираем текст из результата
-text_result = ''
-for line in result[0]:
-    text_result += line[1][0] + '\n'
+    text_result = ''
+    for line in result[0]:
+        text_result += line[1][0] + '\n'
 
     if text_result.strip():
         await message.answer(f"✅ Вот, что удалось распознать:\n\n{text_result}")
