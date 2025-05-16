@@ -9,7 +9,6 @@ import asyncio
 load_dotenv()
 
 API_TOKEN = os.getenv('TELEGRAM_TOKEN')
-
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 bot = Bot(token=API_TOKEN)
@@ -19,11 +18,19 @@ dp = Dispatcher()
 async def handle_photo(message: types.Message):
     if not message.photo:
         return
+
     await message.answer("📷 Получил фото. Начинаю распознавание...")
-    photo = await message.photo[-1].download(destination_file=io.BytesIO())
-    photo.file.seek(0)
-    image = Image.open(photo.file)
+
+    # Скачиваем фото во временное хранилище в памяти
+    photo = message.photo[-1]
+    photo_file = io.BytesIO()
+    await bot.download(photo, destination=photo_file)
+    photo_file.seek(0)
+
+    # Открываем и распознаём
+    image = Image.open(photo_file)
     text = pytesseract.image_to_string(image, lang='rus')
+
     if text.strip():
         await message.answer(f"✅ Вот, что удалось распознать:\n\n{text}")
     else:
