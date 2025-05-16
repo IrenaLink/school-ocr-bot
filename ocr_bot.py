@@ -27,13 +27,18 @@ async def handle_photo(message: types.Message):
     await bot.download(photo, destination=photo_file)
     photo_file.seek(0)
 
-    # Открываем картинку
-    image = Image.open(photo_file).convert('RGB')
-    # Распознаём
-    result = ocr.ocr(image, cls=True)
-    text_result = ''
-    for line in result[0]:
-        text_result += line[1][0] + '\n'
+   # Открываем картинку
+image = Image.open(photo_file).convert('RGB')
+import numpy as np
+image_np = np.array(image)
+
+# Распознаём через PaddleOCR
+result = ocr.ocr(image_np, cls=True)
+
+# Собираем текст из результата
+text_result = ''
+for line in result[0]:
+    text_result += line[1][0] + '\n'
 
     if text_result.strip():
         await message.answer(f"✅ Вот, что удалось распознать:\n\n{text_result}")
