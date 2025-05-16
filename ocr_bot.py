@@ -43,6 +43,7 @@ async def handle_photo(message: types.Message):
 async def main():
     dp.message.register(handle_photo)
     await bot.delete_webhook(drop_pending_updates=True)
+    print("🤖 Бот успешно запущен и использует PaddleOCR. Жду фото...")
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
